@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Grok OCR Extension - Options</title>
+  <link rel="stylesheet" href="options.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <div class="logo">
+        <i class="fas fa-eye"></i>
+        <h1>Grok OCR Settings</h1>
+      </div>
+      <div class="header-actions">
+        <button id="toggle-theme" class="icon-button" title="Toggle Dark/Light Mode">
+          <i class="fas fa-moon"></i>
+        </button>
+      </div>
+    </header>
+    
+    <div class="content-area">
+      <div class="settings-card">
+        <div class="card-header">
+          <h2><i class="fas fa-key"></i> API Configuration</h2>
+        </div>
+        
+        <div class="card-content">
+          <div class="form-group">
+            <label for="apiKey">Grok API Key</label>
+            <div class="input-with-button">
+              <input type="password" id="apiKey" placeholder="Enter your Grok API key">
+              <button id="toggleVisibility" class="icon-button" title="Show/Hide API Key">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+            <p class="helper-text">Your API key is stored securely in your browser's sync storage.</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="settings-card">
+        <div class="card-header">
+          <h2><i class="fas fa-comment-alt"></i> OCR Customization</h2>
+        </div>
+        
+        <div class="card-content">
+          <div class="form-group">
+            <label for="customPrompt">Custom Prompt</label>
+            <textarea id="customPrompt" 
+                      placeholder="Enter a custom prompt for OCR. For example: 'Perform OCR on this image. Extract and return all visible text.'"></textarea>
+            <p class="helper-text">Customize how Grok interprets your images. Leave empty to use the default prompt.</p>
+          </div>
+          
+          <div class="form-group">
+            <div class="preset-prompts">
+              <h3>Preset Prompts</h3>
+              <div class="preset-grid">
+                <button class="preset-button" data-prompt="Perform OCR on this image. Extract and return all visible text.">
+                  <i class="fas fa-font"></i>
+                  <span>Basic OCR</span>
+                </button>
+                <button class="preset-button" data-prompt="Extract and format all text from this image, preserving the original layout and structure as much as possible.">
+                  <i class="fas fa-align-left"></i>
+                  <span>Preserve Layout</span>
+                </button>
+                <button class="preset-button" data-prompt="Extract text from this image and convert it to a clean, formatted markdown document.">
+                  <i class="fab fa-markdown"></i>
+                  <span>Convert to Markdown</span>
+                </button>
+                <button class="preset-button" data-prompt="Extract text from this image and translate it to English.">
+                  <i class="fas fa-language"></i>
+                  <span>Translate to English</span>
+                </button>
+                <button class="preset-button" data-prompt="Extract text from tables in this image and convert to a structured format.">
+                  <i class="fas fa-table"></i>
+                  <span>Table Extraction</span>
+                </button>
+                <button class="preset-button" data-prompt="Extract and summarize the key points from the text in this image.">
+                  <i class="fas fa-list-alt"></i>
+                  <span>Summarize Content</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="settings-card">
+        <div class="card-header">
+          <h2><i class="fas fa-cog"></i> Extension Options</h2>
+        </div>
+        
+        <div class="card-content">
+          <div class="toggle-group">
+            <label class="toggle-label">
+              <span>Automatically copy results to clipboard</span>
+              <div class="toggle-switch">
+                <input type="checkbox" id="autoCopy">
+                <span class="toggle-slider"></span>
+              </div>
+            </label>
+            
+            <label class="toggle-label">
+              <span>Show word count for extracted text</span>
+              <div class="toggle-switch">
+                <input type="checkbox" id="showWordCount" checked>
+                <span class="toggle-slider"></span>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="button-container">
+        <button id="resetButton" class="secondary-button">
+          <i class="fas fa-undo"></i>
+          Reset to Default
+        </button>
+        <button id="saveButton" class="primary-button">
+          <i class="fas fa-save"></i>
+          Save Settings
+        </button>
+      </div>
+    </div>
+    
+    <div id="toast-container" class="toast-container"></div>
+    
+    <footer>
+      <div class="footer-content">
+        <p>Grok OCR Extension &copy; 2025</p>
+        <div class="footer-links">
+          <a href="#" id="show-info" class="footer-link">How to use</a>
+        </div>
+      </div>
+    </footer>
+    
+    <div id="info-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3><i class="fas fa-info-circle"></i> How to use Grok OCR</h3>
+          <button id="close-modal" class="icon-button">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <ol>
+            <li>Enter your Grok API key in the API Configuration section</li>
+            <li>Customize your OCR prompt or select a preset prompt (optional)</li>
+            <li>Right-click on any image on a webpage</li>
+            <li>Select "Perform OCR on this image" from the context menu</li>
+            <li>View and interact with the extracted text in the popup</li>
+          </ol>
+          
+          <div class="info-section">
+            <h4>About Custom Prompts</h4>
+            <p>The prompt you provide will be sent to Grok along with the image. Well-crafted prompts can significantly improve OCR results for specific use cases. Experiment with different prompts for best results.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Grok OCR Extension",
+  "version": "1.0.0",
+  "description": "Perform OCR on images using grok-2-vision",
+  "permissions": [
+    "contextMenus",
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "images/icon16.png",
+      "128": "images/icon128.png"
+    }
+  },
+  "options_page": "options/options.html",
+  "icons": {
+    "16": "images/icon16.png",
+    "128": "images/icon128.png"
+  },
+  "commands": {
+    "perform-ocr": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Y",
+        "mac": "Command+Shift+Y"
+      },
+      "description": "Perform OCR on the first image in the current page"
+    }
+  }
+}
