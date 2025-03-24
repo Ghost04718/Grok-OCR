@@ -58,19 +58,49 @@ async function performOCR(imageUrl, apiKey) {
       baseURL: "https://api.x.ai/v1"
     });
     
+    // Check if URL has a supported image extension
+    const supportedFormats = ['.jpg', '.jpeg', '.png'];
+    const urlLower = imageUrl.toLowerCase();
+    const isDirectlySupportedFormat = supportedFormats.some(format => urlLower.endsWith(format)) || 
+                                    urlLower.includes('image/jpeg') || 
+                                    urlLower.includes('image/jpg') || 
+                                    urlLower.includes('image/png');
+    
+    let imageContent;
+    
+    if (isDirectlySupportedFormat) {
+      // Use URL directly if it's a supported format
+      imageContent = {
+        type: "image_url",
+        image_url: {
+          url: imageUrl,
+          detail: "high",
+        },
+      };
+    } else {
+      // For unsupported formats, convert to base64
+      try {
+        const base64Image = await fetchImageAsBase64(imageUrl);
+        imageContent = {
+          type: "image_url",
+          image_url: {
+            url: `data:image/jpeg;base64,${base64Image}`,
+            detail: "high",
+          },
+        };
+      } catch (fetchError) {
+        console.error('Failed to fetch image:', fetchError);
+        throw new Error('Failed to process the image. Please try another image.');
+      }
+    }
+    
     const completion = await openai.chat.completions.create({
       model: "grok-2-vision-latest",
       messages: [
         {
           role: "user",
           content: [
-            {
-              type: "image_url",
-              image_url: {
-                url: imageUrl,
-                detail: "high",
-              },
-            },
+            imageContent,
             {
               type: "text",
               text: promptText,
@@ -84,5 +114,27 @@ async function performOCR(imageUrl, apiKey) {
   } catch (error) {
     console.error('Grok API Error:', error);
     throw new Error(`OCR failed: ${error.message}`);
+  }
+}
+
+// Function to fetch image and convert to base64
+async function fetchImageAsBase64(url) {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        // Remove the data URL prefix (e.g., "data:image/jpeg;base64,")
+        const base64 = reader.result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error('Error fetching image:', error);
+    throw new Error('Could not fetch the image');
   }
 }
