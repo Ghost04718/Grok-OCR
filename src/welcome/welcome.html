@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Welcome to Grok OCR</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="welcome.css">
+</head>
+<body>
+  <button id="theme-toggle" class="theme-toggle">
+    <i class="fas fa-moon"></i>
+  </button>
+
+  <header>
+    <div class="logo">
+      <i class="fas fa-eye"></i>
+      <h1>Grok OCR</h1>
+    </div>
+    <p class="subtitle">Easily extract text from images using AI</p>
+  </header>
+  
+  <div class="container">
+    <div class="welcome-card">
+      <h2><i class="fas fa-hand-sparkles"></i> Welcome to Grok OCR!</h2>
+      <p>Thank you for installing the Grok OCR Extension. This tool helps you extract text from any image on the web using grok-2-vision, a powerful AI model for visual recognition tasks.</p>
+      
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <div class="step-title">Set up your API key</div>
+            <div class="step-description">Enter your Grok API key in the extension's settings page. This is required to use the OCR functionality.</div>
+          </div>
+        </div>
+        
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <div class="step-title">Right-click on any image</div>
+            <div class="step-description">Find an image containing text on any webpage, right-click on it, and select "Perform OCR on this image".</div>
+          </div>
+        </div>
+        
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <div class="step-title">View the extracted text</div>
+            <div class="step-description">The text from the image will be extracted and displayed in the extension popup. You can then copy, download, or otherwise use the text.</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="cta">
+        <a href="../options/options.html" class="primary-button">
+          <i class="fas fa-cog"></i>
+          Open Settings
+        </a>
+      </div>
+    </div>
+    
+    <div class="welcome-card">
+      <h2><i class="fas fa-star"></i> Key Features</h2>
+      <p>The Grok OCR Extension comes with several features to enhance your experience:</p>
+      
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon"><i class="fas fa-palette"></i></div>
+          <div class="feature-title">Dark & Light Mode</div>
+          <div class="feature-description">Switch between dark and light themes for comfortable use in any environment.</div>
+        </div>
+        
+        <div class="feature">
+          <div class="feature-icon"><i class="fas fa-comment-alt"></i></div>
+          <div class="feature-title">Custom Prompts</div>
+          <div class="feature-description">Customize how Grok interprets your images with specific prompts.</div>
+        </div>
+        
+        <div class="feature">
+          <div class="feature-icon"><i class="fas fa-keyboard"></i></div>
+          <div class="feature-title">Keyboard Shortcuts</div>
+          <div class="feature-description">Use <span class="keyboard-shortcut">Ctrl+Shift+Y</span> (or <span class="keyboard-shortcut">⌘+Shift+Y</span> on Mac) to quickly OCR the first image on a page.</div>
+        </div>
+        
+        <div class="feature">
+          <div class="feature-icon"><i class="fas fa-clipboard"></i></div>
+          <div class="feature-title">Auto-Copy</div>
+          <div class="feature-description">Automatically copy extracted text to clipboard with a single click.</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="welcome-card">
+      <h2><i class="fas fa-lightbulb"></i> Tips & Tricks</h2>
+      <p>Here are some tips to help you get the most out of the extension:</p>
+      
+      <ul style="margin-left: 20px; margin-bottom: 20px;">
+        <li>Use preset prompts for specific types of text extraction (preserving layout, converting to markdown, etc.)</li>
+        <li>Try the context menu's "OCR with preset..." option for quick access to different extraction styles</li>
+        <li>For better results with complex images, consider using specific prompts that describe the type of content</li>
+        <li>Enable dark mode for comfortable nighttime use</li>
+        <li>Use keyboard shortcuts for faster workflow</li>
+      </ul>
+      
+      <p>Have questions or feedback? <a href="https://github.com/Ghost04718/Grok-OCR/issues" style="color: var(--primary);">Visit our GitHub page</a>.</p>
+    </div>
+  </div>
+  
+  <footer>
+    <p>Grok OCR Extension &copy; 2025 | Powered by grok-2-vision</p>
+  </footer>
+  
+  <script src="welcome.js"></script>
+</body>
+</html>

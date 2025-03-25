@@ -4,6 +4,8 @@
   <title>Grok OCR Extension - Options</title>
   <link rel="stylesheet" href="options.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
   <div class="app-container">
@@ -113,6 +115,10 @@
       </div>
       
       <div class="button-container">
+        <!-- Test API button now included in the HTML template rather than created in JS -->
+        <button id="testApiButton" class="secondary-button">
+          <i class="fas fa-vial"></i> Test API Key
+        </button>
         <button id="resetButton" class="secondary-button">
           <i class="fas fa-undo"></i>
           Reset to Default

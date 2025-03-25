@@ -4,6 +4,8 @@
   <title>Grok OCR Extension</title>
   <link rel="stylesheet" href="popup.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
   <div class="app-container">
@@ -72,32 +74,32 @@
           </div>
           <div id="text-content" class="text-content"></div>
         </div>
-        
-        <div class="instruction" id="instruction">
-          <div class="instruction-icon">
-            <i class="fas fa-lightbulb"></i>
-          </div>
-          <div class="instruction-text">
-            <h3>How to use Grok OCR</h3>
-            <ol>
-              <li>Right-click on any image on a webpage</li>
-              <li>Select "Perform OCR on this image"</li>
-              <li>Wait for the text to be extracted</li>
-            </ol>
-            <div class="tip-container">
-              <p class="tip"><i class="fas fa-info-circle"></i> Tip: You can customize your OCR prompt in settings</p>
-            </div>
+      </div>
+      
+      <div class="instruction" id="instruction">
+        <div class="instruction-icon">
+          <i class="fas fa-lightbulb"></i>
+        </div>
+        <div class="instruction-text">
+          <h3>How to use Grok OCR</h3>
+          <ol>
+            <li>Right-click on any image on a webpage</li>
+            <li>Select "Perform OCR on this image"</li>
+            <li>Wait for the text to be extracted</li>
+          </ol>
+          <div class="tip-container">
+            <p class="tip"><i class="fas fa-info-circle"></i> Tip: You can customize your OCR prompt in settings</p>
           </div>
         </div>
       </div>
-      
-      <div id="expanded-image-overlay" class="expanded-image-overlay">
-        <div class="expanded-image-container">
-          <button id="close-expanded" class="close-button">
-            <i class="fas fa-times"></i>
-          </button>
-          <img id="expanded-image" alt="Expanded image">
-        </div>
+    </div>
+    
+    <div id="expanded-image-overlay" class="expanded-image-overlay">
+      <div class="expanded-image-container">
+        <button id="close-expanded" class="close-button">
+          <i class="fas fa-times"></i>
+        </button>
+        <img id="expanded-image" alt="Expanded image">
       </div>
     </div>
     

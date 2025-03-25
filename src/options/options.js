@@ -4,35 +4,39 @@ const DEFAULT_PROMPT = "Perform OCR on this image. Extract and return all visibl
 // Track recent operations to prevent duplicates
 const recentOperations = new Map();
 
-// Initialize the page only once
-let isInitialized = false;
+// Global flag to ensure we only initialize once
+let hasInitialized = false;
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Only initialize once
-  if (isInitialized) return;
-  isInitialized = true;
+  // Prevent multiple initializations
+  if (hasInitialized) {
+    console.log('Already initialized, skipping duplicate initialization');
+    return;
+  }
   
-  // Initialize elements
-  const apiKeyInput = document.getElementById('apiKey');
-  const customPromptInput = document.getElementById('customPrompt');
-  const showWordCountCheckbox = document.getElementById('showWordCount');
-  const autoCopyCheckbox = document.getElementById('autoCopy');
+  // Set the flag immediately
+  hasInitialized = true;
   
-  // Remove any existing event listeners to prevent duplicates
-  document.querySelectorAll('button, input[type="checkbox"]').forEach(element => {
-    const newElement = element.cloneNode(true);
-    element.parentNode.replaceChild(newElement, element);
-  });
+  console.log('Initializing options page...');
   
-  // Re-get references after cloning
-  const toggleVisibilityBtn = document.getElementById('toggleVisibility');
-  const saveButton = document.getElementById('saveButton');
-  const resetButton = document.getElementById('resetButton');
-  const toggleThemeBtn = document.getElementById('toggle-theme');
-  const showInfoBtn = document.getElementById('show-info');
-  const closeModalBtn = document.getElementById('close-modal');
-  const presetGrid = document.querySelector('.preset-grid');
-  const infoModal = document.getElementById('info-modal');
+  // Initialize elements - using let to allow reassignment
+  let apiKeyInput = document.getElementById('apiKey');
+  let customPromptInput = document.getElementById('customPrompt');
+  let showWordCountCheckbox = document.getElementById('showWordCount');
+  let autoCopyCheckbox = document.getElementById('autoCopy');
+  
+  // Button references - using let to allow reassignment
+  let toggleVisibilityBtn = document.getElementById('toggleVisibility');
+  let saveButton = document.getElementById('saveButton');
+  let resetButton = document.getElementById('resetButton');
+  let toggleThemeBtn = document.getElementById('toggle-theme');
+  let showInfoBtn = document.getElementById('show-info');
+  let closeModalBtn = document.getElementById('close-modal');
+  let presetGrid = document.querySelector('.preset-grid');
+  let infoModal = document.getElementById('info-modal');
+  
+  // Get the test API button reference - don't create dynamically
+  let testApiButton = document.getElementById('testApiButton');
   
   // Mark initialization as in progress
   let isRestoringOptions = true;
@@ -47,40 +51,66 @@ document.addEventListener('DOMContentLoaded', () => {
     if (recentOperations.has(key)) {
       const lastTime = recentOperations.get(key);
       if (now - lastTime < cooldownMs) {
-        console.log(`Skipping action ${key}: cooldown in effect`);
-        return;
+        console.log(`Skipping action ${key}: cooldown in effect (last executed ${now - lastTime}ms ago)`);
+        return false; // Indicate the action was skipped
       }
     }
     
+    // Mark action as executed immediately to prevent race conditions
     recentOperations.set(key, now);
+    
+    // Execute the action
     action();
     
-    // Clean up old operations after 10 minutes to prevent memory leaks
+    // Clean up old operations 
     const tenMinutesAgo = now - 600000;
     for (const [existingKey, timestamp] of recentOperations.entries()) {
       if (timestamp < tenMinutesAgo) {
         recentOperations.delete(existingKey);
       }
     }
+    
+    return true; // Indicate action was executed
   }
   
   // Save options to chrome.storage
   function saveOptions() {
+    // Avoid duplicate executions
+    if (saveButton.disabled) return;
+    
     executeOnce('save-options', () => {
       const apiKey = apiKeyInput.value;
       const customPrompt = customPromptInput.value;
       const autoCopy = autoCopyCheckbox.checked;
       const showWordCount = showWordCountCheckbox.checked;
       
-      chrome.storage.sync.set({ 
-        apiKey,
-        customPrompt,
-        autoCopy,
-        showWordCount
-      }, () => {
-        // Show success toast
-        showToast('Settings saved successfully!', 'success');
-      });
+      // Store original button text
+      const originalText = saveButton.innerHTML;
+      
+      try {
+        // Show saving indicator
+        saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        saveButton.disabled = true;
+        
+        chrome.storage.sync.set({ 
+          apiKey,
+          customPrompt,
+          autoCopy,
+          showWordCount
+        }, () => {
+          // Show success toast
+          showToast('Settings saved successfully!', 'success');
+          
+          // Immediately restore button to avoid being stuck
+          saveButton.innerHTML = originalText;
+          saveButton.disabled = false;
+        });
+      } catch (error) {
+        // Handle any unexpected errors
+        showToast(`Error saving settings: ${error.message}`, 'error');
+        saveButton.innerHTML = originalText;
+        saveButton.disabled = false;
+      }
     });
   }
   
@@ -124,6 +154,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Mark initialization as complete after a delay
         setTimeout(() => {
           isRestoringOptions = false;
+          
+          // Setup event listeners after restoration is complete
+          setupEventListeners();
         }, 500);
       }
     );
@@ -176,25 +209,49 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   
-  // Toggle theme
-  function toggleTheme() {
-    executeOnce('toggle-theme', () => {
-      const currentTheme = document.documentElement.getAttribute('data-theme');
-      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  // Test API key with improved handling
+  function testApiKey() {
+    // Avoid duplicate executions
+    if (testApiButton.disabled) return;
+    
+    executeOnce('test-api', async () => {
+      const apiKey = apiKeyInput.value.trim();
       
-      document.documentElement.setAttribute('data-theme', newTheme);
-      
-      if (newTheme === 'dark') {
-        toggleThemeBtn.innerHTML = '<i class="fas fa-sun"></i>';
-      } else {
-        toggleThemeBtn.innerHTML = '<i class="fas fa-moon"></i>';
+      if (!apiKey) {
+        showToast('Please enter an API key first', 'error');
+        return;
       }
       
-      // Save theme preference
-      chrome.storage.sync.set({ theme: newTheme });
+      // Store original button text
+      const originalText = testApiButton.innerHTML;
       
-      // Show toast notification
-      showToast(`${newTheme.charAt(0).toUpperCase() + newTheme.slice(1)} mode activated`, 'info');
+      try {
+        // Show testing indicator
+        testApiButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+        testApiButton.disabled = true;
+        
+        // Create test API request
+        const response = await fetch('https://api.x.ai/v1/models', {
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data) {
+          showToast('API key is valid!', 'success');
+        } else {
+          showToast(`API key validation failed: ${data.error?.message || 'Unknown error'}`, 'error');
+        }
+      } catch (error) {
+        showToast(`Error testing API key: ${error.message}`, 'error');
+      } finally {
+        // Always restore button state, using direct assignment rather than setTimeout
+        testApiButton.innerHTML = originalText;
+        testApiButton.disabled = false;
+      }
     });
   }
   
@@ -218,6 +275,9 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Focus the textarea
       customPromptInput.focus();
+      
+      // Show notification
+      showToast('Preset prompt applied', 'success');
     });
   }
   
@@ -239,7 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return matchFound;
   }
   
-  // Show toast message with strong deduplication
+  // Show toast message with improved deduplication
   function showToast(message, type = 'info') {
     const toastKey = `${type}:${message}`;
     const now = Date.now();
@@ -248,12 +308,28 @@ document.addEventListener('DOMContentLoaded', () => {
     if (recentOperations.has(toastKey)) {
       const lastShown = recentOperations.get(toastKey);
       if (now - lastShown < 5000) {
+        console.log('Skipping duplicate toast:', message);
         return; // Skip showing duplicate toast
       }
     }
     
-    // Track this toast
+    // Track this toast with longer expiration
     recentOperations.set(toastKey, now);
+    
+    // Find toast container - if it doesn't exist, create it
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+      toastContainer = document.createElement('div');
+      toastContainer.id = 'toast-container';
+      toastContainer.className = 'toast-container';
+      document.body.appendChild(toastContainer);
+    }
+    
+    // Remove any existing toast with the same key
+    const existingToast = toastContainer.querySelector(`[data-key="${toastKey}"]`);
+    if (existingToast) {
+      existingToast.remove();
+    }
     
     // Create toast element
     const toast = document.createElement('div');
@@ -273,14 +349,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     toast.innerHTML = `${icon} ${message}`;
-    
-    // Remove any existing toast with the same key
-    const toastContainer = document.getElementById('toast-container');
-    const existingToast = toastContainer.querySelector(`[data-key="${toastKey}"]`);
-    if (existingToast) {
-      existingToast.remove();
-    }
-    
     toastContainer.appendChild(toast);
     
     // Remove toast after delay
@@ -302,15 +370,56 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   
-  // Event Listeners - Using a single handler to attach all listeners
+  // Setup event listeners - only call once after restoration
   function setupEventListeners() {
-    // Button click handlers with debounce and tracking
+    console.log('Setting up event listeners...');
+    
+    // Safety check to prevent multiple event listener registrations
+    if (saveButton.dataset.listenersAttached === 'true') {
+      console.log('Listeners already attached, skipping');
+      return;
+    }
+    
+    // Mark that we've attached listeners
+    saveButton.dataset.listenersAttached = 'true';
+    
+    // Single theme toggle handler
+    toggleThemeBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Execute the theme toggle with cooldown protection
+      executeOnce('toggle-theme', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        // Apply theme change
+        document.documentElement.setAttribute('data-theme', newTheme);
+        
+        // Update icon
+        toggleThemeBtn.innerHTML = newTheme === 'dark' 
+          ? '<i class="fas fa-sun"></i>' 
+          : '<i class="fas fa-moon"></i>';
+        
+        // Save preference
+        chrome.storage.sync.set({ theme: newTheme });
+        
+        // Show confirmation
+        showToast(`${newTheme.charAt(0).toUpperCase() + newTheme.slice(1)} mode activated`, 'info');
+      });
+    });
+    
+    // Button click handlers
     saveButton.addEventListener('click', saveOptions);
     toggleVisibilityBtn.addEventListener('click', toggleApiKeyVisibility);
     resetButton.addEventListener('click', resetToDefault);
-    toggleThemeBtn.addEventListener('click', toggleTheme);
     showInfoBtn.addEventListener('click', toggleInfoModal);
     closeModalBtn.addEventListener('click', toggleInfoModal);
+    
+    // Add test API button event listener if the button exists
+    if (testApiButton) {
+      testApiButton.addEventListener('click', testApiKey);
+    }
     
     // Delegate for preset buttons
     presetGrid.addEventListener('click', applyPresetPrompt);
@@ -322,27 +431,69 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
     
-    // Close modal with Escape key
+    // Global keyboard event handling
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && infoModal.classList.contains('visible')) {
         toggleInfoModal();
       }
+      
+      // Save on Ctrl+S
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        saveOptions();
+      }
     });
     
-    // Handle checkbox changes directly, using onChange instead of addEventListener
+    // Handle checkbox changes
     autoCopyCheckbox.onchange = function() {
       if (!isRestoringOptions) {
         saveSetting('autoCopy', this.checked);
+        showToast(`Auto-copy ${this.checked ? 'enabled' : 'disabled'}`, 'info');
       }
     };
     
     showWordCountCheckbox.onchange = function() {
       if (!isRestoringOptions) {
         saveSetting('showWordCount', this.checked);
+        showToast(`Word count display ${this.checked ? 'enabled' : 'disabled'}`, 'info');
       }
     };
+    
+    // Auto-save input fields with debouncing
+    let apiKeyTimer = null;
+    let promptTimer = null;
+    
+    apiKeyInput.addEventListener('input', () => {
+      if (isRestoringOptions) return;
+      
+      if (apiKeyTimer) {
+        clearTimeout(apiKeyTimer);
+      }
+      
+      apiKeyTimer = setTimeout(() => {
+        saveSetting('apiKey', apiKeyInput.value);
+      }, 1000);
+    });
+    
+    customPromptInput.addEventListener('input', () => {
+      if (isRestoringOptions) return;
+      
+      if (promptTimer) {
+        clearTimeout(promptTimer);
+      }
+      
+      promptTimer = setTimeout(() => {
+        saveSetting('customPrompt', customPromptInput.value);
+        
+        // Update preset button highlighting
+        document.querySelectorAll('.preset-button').forEach(btn => {
+          btn.classList.remove('active');
+        });
+        
+        highlightMatchingPreset(customPromptInput.value);
+      }, 1000);
+    });
+    
+    console.log('Event listeners setup complete');
   }
-  
-  // Set up event listeners after a slight delay to ensure DOM is ready
-  setTimeout(setupEventListeners, 100);
 });
