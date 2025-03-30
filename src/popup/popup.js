@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeExpandedBtn = document.getElementById('close-expanded');
   const toggleThemeBtn = document.getElementById('toggle-theme');
   const toastContainer = document.getElementById('toast-container');
+  const screenshotButton = document.getElementById('screenshot-button');
   
   // Button references
   const copyButton = document.getElementById('copy-button');
@@ -391,6 +392,31 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // EVENT LISTENERS
   
+  // Screenshot button handler - activate screenshot selector
+  screenshotButton.addEventListener('click', () => {
+    executeOnce('screenshot-select', () => {
+      // Close the popup
+      window.close();
+      
+      // Get the current tab
+      chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+        if (!tabs || !tabs.length || !tabs[0].id) {
+          showToast('No active tab found', 'error');
+          return;
+        }
+        
+        // Inject the screenshot selector content script
+        chrome.scripting.executeScript({
+          target: {tabId: tabs[0].id},
+          files: ['screenshot-selector.js']
+        }).catch(error => {
+          console.error('Failed to inject screenshot selector:', error);
+          showToast('Could not activate screenshot selection on this page', 'error');
+        });
+      });
+    });
+  });
+  
   // Simple direct approach to theme toggle
   toggleThemeBtn.onclick = function(e) {
     e.preventDefault();
@@ -504,48 +530,51 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
   
-  // Create and add retry button to error container
-  const retryButton = document.createElement('button');
-  retryButton.className = 'primary-button';
-  retryButton.innerHTML = '<i class="fas fa-redo"></i> Try Again';
-  retryButton.style.marginTop = '16px';
-  
-  retryButton.addEventListener('click', () => {
-    executeOnce('retry-ocr', () => {
-      // If we have an image URL, try OCR again
-      if (currentState.imageUrl) {
-        // Set processing state
-        chrome.storage.local.set({
-          processing: true,
-          ocrError: null,
-          ocrResult: null,
-          timestamp: new Date().toISOString()
-        }, () => {
-          // Update current state
-          currentState.processing = true;
-          currentState.ocrError = null;
-          currentState.ocrResult = null;
-          currentState.timestamp = new Date().toISOString();
-          
-          // Show loading state
-          showLoading();
-          startLoadingAnimation();
-          startStatusCheck();
-          
-          // Tell background script to retry
-          chrome.runtime.sendMessage({
-            action: 'retry-ocr',
-            imageUrl: currentState.imageUrl
+  // Create "Try Again" button for error container - FIXED: only create if it doesn't exist
+  if (!document.getElementById('retry-button')) {
+    const retryButton = document.createElement('button');
+    retryButton.id = 'retry-button'; // Add ID for future reference
+    retryButton.className = 'primary-button';
+    retryButton.innerHTML = '<i class="fas fa-redo"></i> Try Again';
+    retryButton.style.marginTop = '16px';
+    
+    retryButton.addEventListener('click', () => {
+      executeOnce('retry-ocr', () => {
+        // If we have an image URL, try OCR again
+        if (currentState.imageUrl) {
+          // Set processing state
+          chrome.storage.local.set({
+            processing: true,
+            ocrError: null,
+            ocrResult: null,
+            timestamp: new Date().toISOString()
+          }, () => {
+            // Update current state
+            currentState.processing = true;
+            currentState.ocrError = null;
+            currentState.ocrResult = null;
+            currentState.timestamp = new Date().toISOString();
+            
+            // Show loading state
+            showLoading();
+            startLoadingAnimation();
+            startStatusCheck();
+            
+            // Tell background script to retry
+            chrome.runtime.sendMessage({
+              action: 'retry-ocr',
+              imageUrl: currentState.imageUrl
+            });
           });
-        });
-      } else {
-        showToast('No image to process', 'error');
-      }
+        } else {
+          showToast('No image to process', 'error');
+        }
+      });
     });
-  });
-  
-  // Add retry button to error container
-  errorContainer.appendChild(retryButton);
+    
+    // Add retry button to error container
+    errorContainer.appendChild(retryButton);
+  }
   
   // Listen for messages from background script
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -640,4 +669,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   `;
   document.head.appendChild(style);
+  
+  // Add keyboard shortcut CSS
+  const keyboardShortcutStyle = document.createElement('style');
+  keyboardShortcutStyle.textContent = `
+    .keyboard-shortcut {
+      display: inline-block;
+      background-color: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-family: monospace;
+      font-size: 12px;
+      margin: 0 2px;
+    }
+  `;
+  document.head.appendChild(keyboardShortcutStyle);
 });
